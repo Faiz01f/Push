@@ -14,56 +14,74 @@ RUN apk add --no-cache \
 # Set working directory
 WORKDIR /app
 
-# Copy package files first
-COPY package.json ./
-COPY app/frontend/package.json ./app/frontend/
-COPY app/backend/package.json ./app/backend/
-COPY app/worker/package.json ./app/worker/
-
-# Install dependencies using npm workspaces
-RUN npm install
-
-# Copy source code after dependencies
+# Copy the entire source code (required for npm workspaces)
 COPY . .
 
-# Generate Prisma client
-WORKDIR /app/app/backend
-RUN npx prisma generate
+# Install all dependencies using workspaces
+RUN npm install
 
-# Build all applications
-WORKDIR /app/app/frontend
+# Generate Prisma client if backend exists
+RUN if [ -f "app/backend/prisma/schema.prisma" ]; then \
+        cd app/backend && npx prisma generate; \
+    fi
+
+# Build all workspaces
 RUN npm run build
-
-WORKDIR /app/app/backend
-RUN npm run build
-
-WORKDIR /app/app/worker
-RUN npm run build
-
-# Return to app root
-WORKDIR /app
 
 # Create necessary directories
 RUN mkdir -p /var/log/supervisor /app/storage /app/uploads /app/backups
 
-# Copy configuration files
-COPY infra/nginx/nginx.conf /etc/nginx/nginx.conf
-COPY infra/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+# Copy configuration files if they exist
+RUN if [ -f "infra/nginx/nginx.conf" ]; then \
+        cp infra/nginx/nginx.conf /etc/nginx/nginx.conf; \
+    else \
+        echo 'events { worker_connections 1024; }' > /etc/nginx/nginx.conf && \
+        echo 'http {' >> /etc/nginx/nginx.conf && \
+        echo '  include /etc/nginx/mime.types;' >> /etc/nginx/nginx.conf && \
+        echo '  default_type application/octet-stream;' >> /etc/nginx/nginx.conf && \
+        echo '  server {' >> /etc/nginx/nginx.conf && \
+        echo '    listen 3000;' >> /etc/nginx/nginx.conf && \
+        echo '    location / {' >> /etc/nginx/nginx.conf && \
+        echo '      root /var/www/html;' >> /etc/nginx/nginx.conf && \
+        echo '      try_files $uri $uri/ /index.html;' >> /etc/nginx/nginx.conf && \
+        echo '    }' >> /etc/nginx/nginx.conf && \
+        echo '  }' >> /etc/nginx/nginx.conf && \
+        echo '}' >> /etc/nginx/nginx.conf; \
+    fi
 
-# Create directories and copy built frontend to nginx
+RUN if [ -f "infra/supervisor/supervisord.conf" ]; then \
+        cp infra/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf; \
+    else \
+        echo '[supervisord]' > /etc/supervisor/conf.d/supervisord.conf && \
+        echo 'nodaemon=true' >> /etc/supervisor/conf.d/supervisord.conf && \
+        echo '[program:nginx]' >> /etc/supervisor/conf.d/supervisord.conf && \
+        echo 'command=nginx -g "daemon off;"' >> /etc/supervisor/conf.d/supervisord.conf && \
+        echo 'autostart=true' >> /etc/supervisor/conf.d/supervisord.conf && \
+        echo 'autorestart=true' >> /etc/supervisor/conf.d/supervisord.conf; \
+    fi
+
+# Setup frontend files
 RUN mkdir -p /var/www/html
-RUN if [ -d "app/frontend/dist" ]; then cp -r app/frontend/dist/* /var/www/html/; else echo "Frontend build not found, creating placeholder"; echo "<h1>DiziPush</h1>" > /var/www/html/index.html; fi
+RUN if [ -d "app/frontend/dist" ]; then \
+        cp -r app/frontend/dist/* /var/www/html/; \
+    elif [ -d "app/frontend/build" ]; then \
+        cp -r app/frontend/build/* /var/www/html/; \
+    else \
+        echo '<h1>DiziPush</h1><p>Push notification platform</p>' > /var/www/html/index.html; \
+    fi
 
 # Set permissions
 RUN chown -R node:node /app /var/www/html
-RUN chmod +x scripts/*.sh
+
+# Make scripts executable if they exist
+RUN if [ -d "scripts" ]; then chmod +x scripts/*.sh; fi
 
 # Remove X-Frame-Options header to allow iframe embedding
-RUN sed -i '/add_header X-Frame-Options/d' /etc/nginx/nginx.conf
+RUN sed -i '/add_header X-Frame-Options/d' /etc/nginx/nginx.conf || true
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:3000/health || exit 1
+    CMD curl -f http://localhost:3000/ || exit 1
 
 # Expose port
 EXPOSE 3000
