@@ -17,11 +17,31 @@ WORKDIR /app
 # Copy all source code (needed for workspaces)
 COPY . .
 
-# Install dependencies using workspaces
-RUN npm ci --include=dev
+# Install dependencies using npm install (no lock file)
+RUN npm install
 
-# Build all workspaces
+# Install workspace dependencies
+WORKDIR /app/app/frontend
+RUN npm install
+
+WORKDIR /app/app/backend
+RUN npm install && npm run db:generate
+
+WORKDIR /app/app/worker
+RUN npm install
+
+# Build all applications
+WORKDIR /app/app/frontend
 RUN npm run build
+
+WORKDIR /app/app/backend
+RUN npm run build
+
+WORKDIR /app/app/worker
+RUN npm run build
+
+# Return to app root
+WORKDIR /app
 
 # Create necessary directories
 RUN mkdir -p /var/log/supervisor /app/storage /app/uploads /app/backups
