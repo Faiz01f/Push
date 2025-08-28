@@ -6,7 +6,7 @@ import multipart from '@fastify/multipart'
 import rateLimit from '@fastify/rate-limit'
 import swagger from '@fastify/swagger'
 import swaggerUI from '@fastify/swagger-ui'
-import { config } from '@/config'
+import { config } from '@/config/index'
 
 export async function registerPlugins(fastify: FastifyInstance) {
   // CORS
