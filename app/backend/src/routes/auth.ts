@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { z } from 'zod'
 import { prisma } from '@/utils/database'
-import { config } from '@/config'
+import { config } from '@/config/index'
 
 const loginSchema = z.object({
   email: z.string().email(),
