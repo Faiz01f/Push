@@ -14,29 +14,14 @@ RUN apk add --no-cache \
 # Set working directory
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
-COPY app/frontend/package*.json ./app/frontend/
-COPY app/backend/package*.json ./app/backend/
-COPY app/worker/package*.json ./app/worker/
+# Copy all source code (needed for workspaces)
+COPY . .
 
-# Install dependencies
+# Install dependencies using workspaces
 RUN npm ci --include=dev
 
-# Build frontend
-WORKDIR /app/app/frontend
+# Build all workspaces
 RUN npm run build
-
-# Build backend 
-WORKDIR /app/app/backend
-RUN npm run build
-
-# Build worker
-WORKDIR /app/app/worker
-RUN npm run build
-
-# Return to app root
-WORKDIR /app
 
 # Create necessary directories
 RUN mkdir -p /var/log/supervisor /app/storage /app/uploads /app/backups
