@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify'
-import { authRoutes } from './auth.js'
-import { projectRoutes } from './projects.js'
+import { authRoutes } from './auth'
+import { projectRoutes } from './projects'
 
 export async function registerRoutes(fastify: FastifyInstance) {
   // API prefix for all routes
