@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { z } from 'zod'
 import { prisma } from '@/utils/database'
+import { config } from '@/config'
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -36,14 +37,14 @@ export async function authRoutes(fastify: FastifyInstance) {
 
       const accessToken = jwt.sign(
         { userId: user.id, email: user.email },
-        process.env.JWT_SECRET || 'fallback-secret',
-        { expiresIn: '15m' }
+        config.JWT_SECRET,
+        { expiresIn: config.JWT_EXPIRES_IN }
       )
 
       const refreshToken = jwt.sign(
         { userId: user.id },
-        process.env.JWT_REFRESH_SECRET || 'fallback-refresh-secret',
-        { expiresIn: '7d' }
+        config.JWT_REFRESH_SECRET,
+        { expiresIn: config.JWT_REFRESH_EXPIRES_IN }
       )
 
       return {
@@ -110,14 +111,14 @@ export async function authRoutes(fastify: FastifyInstance) {
 
       const accessToken = jwt.sign(
         { userId: user.id, email: user.email },
-        process.env.JWT_SECRET!,
-        { expiresIn: '15m' }
+        config.JWT_SECRET,
+        { expiresIn: config.JWT_EXPIRES_IN }
       )
 
       const refreshToken = jwt.sign(
         { userId: user.id },
-        process.env.JWT_REFRESH_SECRET!,
-        { expiresIn: '7d' }
+        config.JWT_REFRESH_SECRET,
+        { expiresIn: config.JWT_REFRESH_EXPIRES_IN }
       )
 
       return {
@@ -148,7 +149,7 @@ export async function authRoutes(fastify: FastifyInstance) {
         refreshToken: z.string()
       }).parse(request.body)
 
-      const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET!) as { userId: string }
+      const decoded = jwt.verify(refreshToken, config.JWT_REFRESH_SECRET) as { userId: string }
       
       const user = await prisma.user.findUnique({
         where: { id: decoded.userId },
@@ -165,8 +166,8 @@ export async function authRoutes(fastify: FastifyInstance) {
 
       const newAccessToken = jwt.sign(
         { userId: user.id, email: user.email },
-        process.env.JWT_SECRET!,
-        { expiresIn: '15m' }
+        config.JWT_SECRET,
+        { expiresIn: config.JWT_EXPIRES_IN }
       )
 
       return {
@@ -193,7 +194,7 @@ export async function authRoutes(fastify: FastifyInstance) {
     preHandler: [fastify.authenticate]
   }, async (request) => {
     const user = await prisma.user.findUnique({
-      where: { id: request.user.userId },
+      where: { id: (request as any).user.userId },
       include: {
         memberships: {
           include: { org: true }
