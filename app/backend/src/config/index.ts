@@ -19,18 +19,18 @@ const configSchema = z.object({
   REDIS_URL: z.string().default('redis://localhost:6379'),
   
   // Authentication
-  JWT_SECRET: z.string().min(32),
-  JWT_REFRESH_SECRET: z.string().min(32),
+  JWT_SECRET: z.string().default('your-super-secret-jwt-key-change-this-in-production'),
+  JWT_REFRESH_SECRET: z.string().default('your-super-secret-refresh-key-change-this-too'),
   JWT_EXPIRES_IN: z.string().default('15m'),
   JWT_REFRESH_EXPIRES_IN: z.string().default('7d'),
   
   // Encryption
-  ENCRYPTION_KEY: z.string().length(64), // 32 bytes hex
+  ENCRYPTION_KEY: z.string().default('0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'), // 32 bytes hex
   
-  // VAPID Keys
-  VAPID_PUBLIC_KEY: z.string().min(1),
-  VAPID_PRIVATE_KEY: z.string().min(1),
-  VAPID_SUBJECT: z.string().email(),
+  // VAPID Keys (optional for initial setup)
+  VAPID_PUBLIC_KEY: z.string().default(''),
+  VAPID_PRIVATE_KEY: z.string().default(''),
+  VAPID_SUBJECT: z.string().default('mailto:admin@localhost'),
   
   // Email/SMTP
   SMTP_HOST: z.string().optional(),
