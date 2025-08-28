@@ -1,0 +1,37 @@
+{
+  "name": "@dizipush/worker",
+  "version": "1.0.0",
+  "description": "DiziPush Queue Workers for Push Notifications",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch --clear-screen=false src/index.ts",
+    "build": "tsc && tsc-alias",
+    "start": "node dist/index.js",
+    "test": "vitest",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.7.1",
+    "bullmq": "^5.1.1",
+    "csv-parse": "^5.5.2",
+    "csv-stringify": "^6.4.4",
+    "ioredis": "^5.3.2",
+    "nanoid": "^5.0.4",
+    "pino": "^8.17.2",
+    "web-push": "^3.6.7",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.5",
+    "@typescript-eslint/eslint-plugin": "^6.14.0",
+    "@typescript-eslint/parser": "^6.14.0",
+    "eslint": "^8.55.0",
+    "prisma": "^5.7.1",
+    "tsc-alias": "^1.8.8",
+    "tsx": "^4.6.2",
+    "typescript": "^5.3.3",
+    "vitest": "^1.0.4"
+  }
+}
