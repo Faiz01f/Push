@@ -2,7 +2,7 @@ import { FastifyInstance } from 'fastify'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { z } from 'zod'
-import { prisma } from '../utils/database.js'
+import { prisma } from '@/utils/database'
 
 const loginSchema = z.object({
   email: z.string().email(),
