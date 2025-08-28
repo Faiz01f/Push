@@ -36,13 +36,13 @@ export async function authRoutes(fastify: FastifyInstance) {
 
       const accessToken = jwt.sign(
         { userId: user.id, email: user.email },
-        process.env.JWT_SECRET!,
+        process.env.JWT_SECRET || 'fallback-secret',
         { expiresIn: '15m' }
       )
 
       const refreshToken = jwt.sign(
         { userId: user.id },
-        process.env.JWT_REFRESH_SECRET!,
+        process.env.JWT_REFRESH_SECRET || 'fallback-refresh-secret',
         { expiresIn: '7d' }
       )
 
