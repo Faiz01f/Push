@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="DiziPush - Self-hosted web push notification platform with advanced analytics and segmentation." />
+    <meta name="theme-color" content="#0ea5e9" />
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="/" />
+    <meta property="og:title" content="DiziPush - Self-Hosted Push Notifications" />
+    <meta property="og:description" content="Modern web push notification platform with advanced analytics, segmentation, and real-time delivery." />
+    <meta property="og:image" content="/images/og-image.png" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="/" />
+    <meta property="twitter:title" content="DiziPush - Self-Hosted Push Notifications" />
+    <meta property="twitter:description" content="Modern web push notification platform with advanced analytics, segmentation, and real-time delivery." />
+    <meta property="twitter:image" content="/images/og-image.png" />
+    
+    <title>DiziPush - Push Notification Platform</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+      // Register service worker for development/demo purposes
+      if ('serviceWorker' in navigator && 'PushManager' in window) {
+        window.addEventListener('load', async () => {
+          try {
+            const registration = await navigator.serviceWorker.register('/sw.js', {
+              scope: '/'
+            });
+            console.log('SW registered: ', registration);
+          } catch (registrationError) {
+            console.log('SW registration failed: ', registrationError);
+          }
+        });
+      }
+    </script>
+  </body>
+</html>
