@@ -14,21 +14,21 @@ RUN apk add --no-cache \
 # Set working directory
 WORKDIR /app
 
-# Copy all source code (needed for workspaces)
+# Copy package files first
+COPY package.json ./
+COPY app/frontend/package.json ./app/frontend/
+COPY app/backend/package.json ./app/backend/
+COPY app/worker/package.json ./app/worker/
+
+# Install dependencies using npm workspaces
+RUN npm install
+
+# Copy source code after dependencies
 COPY . .
 
-# Install dependencies using npm install (no lock file)
-RUN npm install
-
-# Install workspace dependencies
-WORKDIR /app/app/frontend
-RUN npm install
-
+# Generate Prisma client
 WORKDIR /app/app/backend
-RUN npm install && npm run db:generate
-
-WORKDIR /app/app/worker
-RUN npm install
+RUN npx prisma generate
 
 # Build all applications
 WORKDIR /app/app/frontend
