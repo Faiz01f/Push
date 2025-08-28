@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify'
 import { z } from 'zod'
-import { prisma } from '../utils/database.js'
+import { prisma } from '@/utils/database'
 import webpush from 'web-push'
 
 const createProjectSchema = z.object({
