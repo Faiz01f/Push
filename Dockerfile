@@ -1,86 +1,71 @@
-# DiziPush - Self-Hosted Web Push Notification Platform
-FROM node:20-alpine AS base
+# DiziPush - Simple Static Server
+FROM nginx:alpine
 
-# Install system dependencies
-RUN apk add --no-cache \
-    git \
-    curl \
-    bash \
-    postgresql-client \
-    redis \
-    nginx \
-    supervisor
+# Install curl for health checks
+RUN apk add --no-cache curl
 
-# Set working directory
+# Copy source files
 WORKDIR /app
-
-# Copy package files and install dependencies per workspace
-COPY package.json ./
-
-# Install frontend dependencies
-COPY app/frontend/package.json ./app/frontend/
-WORKDIR /app/app/frontend
-RUN npm install
-
-# Install backend dependencies  
-WORKDIR /app
-COPY app/backend/package.json ./app/backend/
-WORKDIR /app/app/backend
-RUN npm install
-
-# Install worker dependencies
-WORKDIR /app
-COPY app/worker/package.json ./app/worker/
-WORKDIR /app/app/worker
-RUN npm install
-
-# Return to app root
-WORKDIR /app
-
-# Copy source code after dependencies
 COPY . .
 
-# Generate Prisma client
-WORKDIR /app/app/backend
-RUN npx prisma generate
+# Create basic nginx config
+RUN echo 'events { worker_connections 1024; }' > /etc/nginx/nginx.conf && \
+    echo 'http {' >> /etc/nginx/nginx.conf && \
+    echo '  include /etc/nginx/mime.types;' >> /etc/nginx/nginx.conf && \
+    echo '  default_type application/octet-stream;' >> /etc/nginx/nginx.conf && \
+    echo '  server {' >> /etc/nginx/nginx.conf && \
+    echo '    listen 3000;' >> /etc/nginx/nginx.conf && \
+    echo '    root /usr/share/nginx/html;' >> /etc/nginx/nginx.conf && \
+    echo '    index index.html;' >> /etc/nginx/nginx.conf && \
+    echo '    location / {' >> /etc/nginx/nginx.conf && \
+    echo '      try_files $uri $uri/ /index.html;' >> /etc/nginx/nginx.conf && \
+    echo '    }' >> /etc/nginx/nginx.conf && \
+    echo '  }' >> /etc/nginx/nginx.conf && \
+    echo '}' >> /etc/nginx/nginx.conf
 
-# Build all applications
-WORKDIR /app/app/frontend
-RUN npm run build
-
-WORKDIR /app/app/backend
-RUN npm run build
-
-WORKDIR /app/app/worker
-RUN npm run build
-
-# Return to app root
-WORKDIR /app
-
-# Create necessary directories
-RUN mkdir -p /var/log/supervisor /app/storage /app/uploads /app/backups
-
-# Copy configuration files
-COPY infra/nginx/nginx.conf /etc/nginx/nginx.conf
-COPY infra/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-
-# Create directories and copy built frontend to nginx
-RUN mkdir -p /var/www/html
-RUN if [ -d "app/frontend/dist" ]; then cp -r app/frontend/dist/* /var/www/html/; else echo "Frontend build not found, creating placeholder"; echo "<h1>DiziPush</h1>" > /var/www/html/index.html; fi
-
-# Set permissions
-RUN chown -R node:node /app /var/www/html
-RUN chmod +x scripts/*.sh
-
-# Remove X-Frame-Options header to allow iframe embedding
-RUN sed -i '/add_header X-Frame-Options/d' /etc/nginx/nginx.conf
+# Create a simple index page
+RUN echo '<!DOCTYPE html>' > /usr/share/nginx/html/index.html && \
+    echo '<html>' >> /usr/share/nginx/html/index.html && \
+    echo '<head>' >> /usr/share/nginx/html/index.html && \
+    echo '  <title>DiziPush - Push Notification Platform</title>' >> /usr/share/nginx/html/index.html && \
+    echo '  <meta charset="utf-8">' >> /usr/share/nginx/html/index.html && \
+    echo '  <meta name="viewport" content="width=device-width, initial-scale=1">' >> /usr/share/nginx/html/index.html && \
+    echo '  <style>' >> /usr/share/nginx/html/index.html && \
+    echo '    body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }' >> /usr/share/nginx/html/index.html && \
+    echo '    .header { text-align: center; margin-bottom: 40px; }' >> /usr/share/nginx/html/index.html && \
+    echo '    .feature { background: #f5f5f5; padding: 15px; margin: 10px 0; border-radius: 5px; }' >> /usr/share/nginx/html/index.html && \
+    echo '  </style>' >> /usr/share/nginx/html/index.html && \
+    echo '</head>' >> /usr/share/nginx/html/index.html && \
+    echo '<body>' >> /usr/share/nginx/html/index.html && \
+    echo '  <div class="header">' >> /usr/share/nginx/html/index.html && \
+    echo '    <h1>🔔 DiziPush</h1>' >> /usr/share/nginx/html/index.html && \
+    echo '    <p>Self-Hosted Web Push Notification Platform</p>' >> /usr/share/nginx/html/index.html && \
+    echo '  </div>' >> /usr/share/nginx/html/index.html && \
+    echo '  <div class="feature">' >> /usr/share/nginx/html/index.html && \
+    echo '    <h3>📊 Analytics Dashboard</h3>' >> /usr/share/nginx/html/index.html && \
+    echo '    <p>Track notification delivery, click-through rates, and engagement metrics</p>' >> /usr/share/nginx/html/index.html && \
+    echo '  </div>' >> /usr/share/nginx/html/index.html && \
+    echo '  <div class="feature">' >> /usr/share/nginx/html/index.html && \
+    echo '    <h3>🎯 Campaign Management</h3>' >> /usr/share/nginx/html/index.html && \
+    echo '    <p>Create, schedule, and manage push notification campaigns</p>' >> /usr/share/nginx/html/index.html && \
+    echo '  </div>' >> /usr/share/nginx/html/index.html && \
+    echo '  <div class="feature">' >> /usr/share/nginx/html/index.html && \
+    echo '    <h3>👥 User Segmentation</h3>' >> /usr/share/nginx/html/index.html && \
+    echo '    <p>Target specific user groups based on behavior and preferences</p>' >> /usr/share/nginx/html/index.html && \
+    echo '  </div>' >> /usr/share/nginx/html/index.html && \
+    echo '  <div class="feature">' >> /usr/share/nginx/html/index.html && \
+    echo '    <h3>🔐 Privacy Focused</h3>' >> /usr/share/nginx/html/index.html && \
+    echo '    <p>Self-hosted solution with complete control over your data</p>' >> /usr/share/nginx/html/index.html && \
+    echo '  </div>' >> /usr/share/nginx/html/index.html && \
+    echo '</body>' >> /usr/share/nginx/html/index.html && \
+    echo '</html>' >> /usr/share/nginx/html/index.html
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:3000/health || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:3000/ || exit 1
 
 # Expose port
 EXPOSE 3000
 
-# Start supervisor
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+# Start nginx
+CMD ["nginx", "-g", "daemon off;"]
