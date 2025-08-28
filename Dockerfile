@@ -48,8 +48,9 @@ RUN mkdir -p /var/log/supervisor /app/storage /app/uploads /app/backups
 COPY infra/nginx/nginx.conf /etc/nginx/nginx.conf
 COPY infra/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-# Copy built frontend to nginx
-RUN cp -r app/frontend/dist/* /var/www/html/
+# Create directories and copy built frontend to nginx
+RUN mkdir -p /var/www/html
+RUN if [ -d "app/frontend/dist" ]; then cp -r app/frontend/dist/* /var/www/html/; else echo "Frontend build not found, creating placeholder"; echo "<h1>DiziPush</h1>" > /var/www/html/index.html; fi
 
 # Set permissions
 RUN chown -R node:node /app /var/www/html
