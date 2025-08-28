@@ -14,14 +14,15 @@ RUN apk add --no-cache \
 # Set working directory
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Copy package files for each service
 COPY app/frontend/package*.json ./app/frontend/
 COPY app/backend/package*.json ./app/backend/
 COPY app/worker/package*.json ./app/worker/
 
-# Install dependencies
-RUN npm ci --include=dev
+# Install dependencies for each service
+RUN cd app/frontend && npm install
+RUN cd app/backend && npm install
+RUN cd app/worker && npm install
 
 # Copy source code
 COPY . .
